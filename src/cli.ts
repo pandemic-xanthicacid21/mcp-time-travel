@@ -8,6 +8,7 @@ import { recordHttpCommand } from './commands/record-http.js';
 import { replayHttpCommand } from './commands/replay-http.js';
 import { listCommand } from './commands/list.js';
 import { debugCommand } from './commands/debug.js';
+import { inspectCommand } from './commands/inspect.js';
 
 const program = new Command();
 
@@ -62,5 +63,11 @@ program
   .option('--dir <dir>', 'Sessions directory', '.mcp-replay')
   .option('--step <n>', 'Start at step N', '1')
   .action(debugCommand);
+
+program
+  .command('inspect <session-id>')
+  .description('Print a non-interactive summary of a recorded session')
+  .option('--dir <dir>', 'Sessions directory', '.mcp-replay')
+  .action(inspectCommand);
 
 program.parse();

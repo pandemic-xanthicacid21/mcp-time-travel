@@ -1,7 +1,12 @@
 # Time-travel debugging for MCP agents
 
+**The missing debugger for MCP Agents**
+
 *If you're experimenting with MCP agents and find this useful,
 a ⭐ helps others discover the project.*
+
+<!-- GIF placeholder -->
+> Demo GIF coming soon — record, replay, and debug MCP sessions
 
 Agents are difficult to debug.
 
@@ -14,7 +19,7 @@ Common problems:
 
 mcp-time-travel solves this by recording MCP sessions and replaying them deterministically.
 
-mcp-time-travel is a transparent proxy that sits between an AI agent (Claude Code, Cursor, etc.) and a real MCP server. It captures every tool call with full input/output and timing metadata. Recorded sessions can be replayed deterministically or stepped through interactively for debugging.
+mcp-time-travel is a transparent proxy that sits between an AI agent (Claude Code, Cursor, etc.) and a real MCP server. It captures every tool call with full input/output and timing metadata. Recorded sessions can be replayed deterministically, stepped through interactively for debugging, or inspected with a quick summary view.
 
 ## Features
 
@@ -56,6 +61,14 @@ npx mcp-time-travel debug <session-id>
 ```
 
 Interactive step-through debugger. Inspect each tool call, modify inputs, override outputs.
+
+### Inspect a session
+
+```bash
+npx mcp-time-travel inspect <session-id>
+```
+
+Prints a non-interactive summary with tool call frequency, bar chart, and timeline — perfect for screenshots and quick reviews.
 
 ### List sessions
 
@@ -118,6 +131,15 @@ Options:
   --dir <dir>        Sessions directory (default: .mcp-replay/)
   --speed <factor>   0 = instant, 1 = real-time (default: 0)
   --override <file>  JSON file with input/output overrides
+```
+
+### `inspect <session-id>`
+
+```
+npx mcp-time-travel inspect <session-id> [options]
+
+Options:
+  --dir <dir>        Sessions directory (default: .mcp-replay/)
 ```
 
 ### `debug <session-id>`

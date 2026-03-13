@@ -41,6 +41,12 @@ export class ReplayHandler {
       );
     }
 
+    if (JSON.stringify(args) !== JSON.stringify(record.input)) {
+      process.stderr.write(
+        `[mcp-time-travel] Warning: input mismatch for "${record.tool}" at seq ${record.seq}\n`
+      );
+    }
+
     const applied = this.overrides.apply(record);
     return applied.output;
   }
