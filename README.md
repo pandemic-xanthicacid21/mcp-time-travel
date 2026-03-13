@@ -1,7 +1,7 @@
 # Time-travel debugging for MCP agents
 
-If you're experimenting with MCP agents and find this useful,
-a ⭐ helps others discover the project.
+*If you're experimenting with MCP agents and find this useful,
+a ⭐ helps others discover the project.*
 
 Agents are difficult to debug.
 
