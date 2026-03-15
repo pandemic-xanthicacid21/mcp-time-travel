@@ -49,6 +49,43 @@ function waitForStderr(proc: ChildProcess, marker: string): Promise<void> {
   });
 }
 
+function waitForExit(proc: ChildProcess): Promise<number | null> {
+  if (proc.exitCode !== null || proc.signalCode !== null) {
+    return Promise.resolve(proc.exitCode);
+  }
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Timed out waiting for process exit')), 10_000);
+    const finish = (code: number | null) => {
+      clearTimeout(timer);
+      proc.off('error', onError);
+      proc.off('close', onClose);
+      proc.off('exit', onExit);
+      resolve(code);
+    };
+    const onExit = (code: number | null) => {
+      finish(code);
+    };
+    const onClose = (code: number | null) => {
+      finish(code);
+    };
+    const onError = (err: Error) => {
+      clearTimeout(timer);
+      proc.off('close', onClose);
+      proc.off('exit', onExit);
+      reject(err);
+    };
+
+    proc.once('exit', onExit);
+    proc.once('close', onClose);
+    proc.once('error', onError);
+
+    if (proc.exitCode !== null || proc.signalCode !== null) {
+      finish(proc.exitCode);
+    }
+  });
+}
+
 describe('Integration: HTTP record and replay flow', () => {
   let tmpDir: string;
   let outputDir: string;
@@ -123,9 +160,9 @@ describe('Integration: HTTP record and replay flow', () => {
 
       await client.close();
     } finally {
+      const exitPromise = waitForExit(proxy);
       proxy.kill('SIGTERM');
-      // Give it time to finalize the session
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await exitPromise;
     }
   }, 30_000);
 
@@ -161,6 +198,10 @@ describe('Integration: HTTP record and replay flow', () => {
     ], {
       stdio: ['pipe', 'pipe', 'pipe'],
     });
+    let replayStderr = '';
+    replayProc.stderr?.on('data', (chunk) => {
+      replayStderr += chunk.toString();
+    });
 
     await waitForStderr(replayProc, 'HTTP replay server ready');
 
@@ -176,6 +217,38 @@ describe('Integration: HTTP record and replay flow', () => {
       expect(tools.tools.length).toBe(2);
       const toolNames = tools.tools.map(t => t.name).sort();
       expect(toolNames).toEqual(['echo', 'greet']);
+      expect(
+        tools.tools
+          .map((tool) => ({
+            name: tool.name,
+            description: tool.description,
+            inputSchema: tool.inputSchema,
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name)),
+      ).toEqual([
+        {
+          name: 'echo',
+          description: 'Echoes input back',
+          inputSchema: {
+            $schema: 'http://json-schema.org/draft-07/schema#',
+            type: 'object',
+            properties: {
+              message: { type: 'string' },
+            },
+          },
+        },
+        {
+          name: 'greet',
+          description: 'Returns a greeting',
+          inputSchema: {
+            $schema: 'http://json-schema.org/draft-07/schema#',
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+            },
+          },
+        },
+      ]);
 
       // Call echo tool from replay
       const replayedEchoResult = await client.callTool({
@@ -198,8 +271,59 @@ describe('Integration: HTTP record and replay flow', () => {
       }
 
       await client.close();
+      expect(replayStderr).not.toContain('input mismatch');
     } finally {
+      const exitPromise = waitForExit(replayProc);
       replayProc.kill('SIGTERM');
+      await exitPromise;
+    }
+  }, 30_000);
+
+  it('should consistently flush complete recordings on immediate shutdown', async () => {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const sessionId = `test-http-shutdown-${attempt}`;
+      const port = REPLAY_PORT + 10 + attempt;
+
+      const proxy = spawn('node', [
+        CLI_PATH,
+        'record-http',
+        '--upstream', `http://localhost:${echoServerPort}`,
+        '--port', String(port),
+        '--session', sessionId,
+        '--output', outputDir,
+      ], {
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+
+      await waitForStderr(proxy, 'HTTP proxy ready');
+
+      try {
+        const transport = new StreamableHTTPClientTransport(
+          new URL(`http://localhost:${port}`),
+        );
+        const client = new Client({ name: `http-shutdown-${attempt}`, version: '1.0.0' });
+        await client.connect(transport);
+
+        await client.listTools();
+        await client.callTool({
+          name: 'echo',
+          arguments: { message: `hello-${attempt}` },
+        });
+        await client.callTool({
+          name: 'greet',
+          arguments: { name: `User-${attempt}` },
+        });
+
+        await client.close();
+      } finally {
+        const exitPromise = waitForExit(proxy);
+        proxy.kill('SIGTERM');
+        await exitPromise;
+      }
+
+      const recordingPath = path.join(outputDir, sessionId, 'recording.jsonl');
+      const lines = fs.readFileSync(recordingPath, 'utf-8').trim().split('\n');
+      expect(lines.length).toBeGreaterThanOrEqual(3);
     }
   }, 30_000);
 });

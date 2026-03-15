@@ -5,6 +5,7 @@ import { RecordingProxy } from '../proxy/proxy.js';
 import { generateSessionId } from '../utils/id.js';
 import { extractSSEEvents } from '../transport/sse.js';
 import type { JsonRpcMessage } from '../proxy/interceptor.js';
+import { AsyncWorkTracker } from '../utils/async-work-tracker.js';
 
 // Headers that should not be forwarded between client and upstream
 const SKIP_REQUEST_HEADERS = new Set([
@@ -35,22 +36,36 @@ export async function recordHttpCommand(options: RecordHttpOptions): Promise<voi
   await writer.initialize();
 
   const proxy = new RecordingProxy(writer);
+  const activeRequests = new AsyncWorkTracker();
+  const pendingWrites = new AsyncWorkTracker();
+  let shuttingDown = false;
+  let cleanupPromise: Promise<void> | null = null;
 
   process.stderr.write(`[mcp-time-travel] Recording HTTP session: ${sessionId}\n`);
   process.stderr.write(`[mcp-time-travel] Upstream: ${options.upstream}\n`);
   process.stderr.write(`[mcp-time-travel] Listening on port ${port}\n`);
 
-  const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
-    try {
-      await handleRequest(req, res, upstreamUrl, proxy);
-    } catch (err) {
-      const errMsg = err instanceof Error ? err.message : String(err);
-      process.stderr.write(`[mcp-time-travel] Proxy error: ${errMsg}\n`);
-      if (!res.headersSent) {
-        res.writeHead(502, { 'content-type': 'application/json' });
-        res.end(JSON.stringify({ error: 'proxy error' }));
-      }
+  const server = createServer((req: IncomingMessage, res: ServerResponse) => {
+    if (shuttingDown) {
+      res.writeHead(503, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ error: 'server shutting down' }));
+      return;
     }
+
+    const requestWork = (async () => {
+      try {
+        await handleRequest(req, res, upstreamUrl, proxy, pendingWrites);
+      } catch (err) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        process.stderr.write(`[mcp-time-travel] Proxy error: ${errMsg}\n`);
+        if (!res.headersSent) {
+          res.writeHead(502, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ error: 'proxy error' }));
+        }
+      }
+    })();
+
+    void activeRequests.track(requestWork);
   });
 
   server.listen(port, () => {
@@ -58,19 +73,53 @@ export async function recordHttpCommand(options: RecordHttpOptions): Promise<voi
   });
 
   const cleanup = async () => {
-    server.close();
-    await writer.finalize();
-    process.stderr.write(`[mcp-time-travel] Session saved: ${sessionId}\n`);
+    if (cleanupPromise) {
+      return cleanupPromise;
+    }
+
+    shuttingDown = true;
+    cleanupPromise = (async () => {
+      const closeServer = new Promise<void>((resolve, reject) => {
+        server.close((error) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve();
+        });
+      });
+
+      await activeRequests.drain();
+      await pendingWrites.drain();
+      server.closeIdleConnections?.();
+      server.closeAllConnections?.();
+      await closeServer;
+      await writer.finalize();
+      process.stderr.write(`[mcp-time-travel] Session saved: ${sessionId}\n`);
+    })();
+
+    return cleanupPromise;
   };
 
-  process.on('SIGINT', async () => {
-    await cleanup();
-    process.exit(0);
+  const shutdown = (signal: 'SIGINT' | 'SIGTERM') => {
+    void (async () => {
+      try {
+        await cleanup();
+        process.exit(0);
+      } catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
+        process.stderr.write(`[mcp-time-travel] Shutdown error on ${signal}: ${errMsg}\n`);
+        process.exit(1);
+      }
+    })();
+  };
+
+  process.on('SIGINT', () => {
+    shutdown('SIGINT');
   });
 
-  process.on('SIGTERM', async () => {
-    await cleanup();
-    process.exit(0);
+  process.on('SIGTERM', () => {
+    shutdown('SIGTERM');
   });
 }
 
@@ -153,6 +202,7 @@ async function handleRequest(
   res: ServerResponse,
   upstreamUrl: URL,
   proxy: RecordingProxy,
+  pendingWrites: AsyncWorkTracker,
 ): Promise<void> {
   const method = req.method ?? 'GET';
   const headers = buildUpstreamHeaders(req);
@@ -182,40 +232,106 @@ async function handleRequest(
     res.writeHead(upstreamRes.statusCode ?? 200, responseHeaders);
 
     let sseBuffer = '';
+    let responseError: unknown;
+    let responseChain = Promise.resolve();
 
-    upstreamRes.on('data', (chunk: Buffer) => {
-      const text = chunk.toString('utf-8');
-      sseBuffer += text;
+    const queueResponseIntercept = (payload: string): void => {
+      responseChain = responseChain
+        .then(() => pendingWrites.track(interceptMessages(proxy, payload, 'response')))
+        .catch((error) => {
+          responseError ??= error;
+        });
+    };
 
-      const { complete, remaining } = extractSSEEvents(sseBuffer);
-      sseBuffer = remaining;
+    await new Promise<void>((resolve, reject) => {
+      let settled = false;
 
-      for (const event of complete) {
-        if (event.data) {
-          interceptMessages(proxy, event.data, 'response');
-        }
-      }
+      const cleanupListeners = (): void => {
+        upstreamRes.off('data', onData);
+        upstreamRes.off('end', onEnd);
+        upstreamRes.off('error', onError);
+        res.off('close', onClose);
+      };
 
-      // Forward the raw chunk unchanged
-      res.write(chunk);
-    });
+      const finish = (): void => {
+        if (settled) return;
+        settled = true;
+        cleanupListeners();
+        resolve();
+      };
 
-    upstreamRes.on('end', () => {
-      // Process any remaining buffer
-      if (sseBuffer.trim()) {
-        const { complete } = extractSSEEvents(sseBuffer + '\n\n');
+      const fail = (error: unknown): void => {
+        if (settled) return;
+        settled = true;
+        cleanupListeners();
+        reject(error);
+      };
+
+      const onData = (chunk: Buffer): void => {
+        if (settled) return;
+
+        const text = chunk.toString('utf-8');
+        sseBuffer += text;
+
+        const { complete, remaining } = extractSSEEvents(sseBuffer);
+        sseBuffer = remaining;
+
         for (const event of complete) {
           if (event.data) {
-            interceptMessages(proxy, event.data, 'response');
+            queueResponseIntercept(event.data);
           }
         }
-      }
-      res.end();
-    });
 
-    upstreamRes.on('error', (err) => {
-      process.stderr.write(`[mcp-time-travel] Upstream SSE error: ${err.message}\n`);
-      res.end();
+        // Forward the raw chunk unchanged
+        res.write(chunk);
+      };
+
+      const onEnd = (): void => {
+        void (async () => {
+          try {
+            if (sseBuffer.trim()) {
+              const { complete } = extractSSEEvents(sseBuffer + '\n\n');
+              for (const event of complete) {
+                if (event.data) {
+                  queueResponseIntercept(event.data);
+                }
+              }
+            }
+
+            await responseChain;
+            if (responseError) {
+              throw responseError;
+            }
+
+            if (!res.writableEnded) {
+              res.end();
+            }
+            finish();
+          } catch (error) {
+            fail(error);
+          }
+        })();
+      };
+
+      const onError = (err: Error): void => {
+        process.stderr.write(`[mcp-time-travel] Upstream SSE error: ${err.message}\n`);
+        if (!res.writableEnded) {
+          res.end();
+        }
+        fail(err);
+      };
+
+      const onClose = (): void => {
+        if (!upstreamRes.destroyed) {
+          upstreamRes.destroy();
+        }
+        finish();
+      };
+
+      upstreamRes.on('data', onData);
+      upstreamRes.on('end', onEnd);
+      upstreamRes.on('error', onError);
+      res.on('close', onClose);
     });
   } else {
     // Non-SSE response — read full body and intercept

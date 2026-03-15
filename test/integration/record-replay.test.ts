@@ -122,6 +122,10 @@ describe('Integration: record and replay flow', () => {
       ],
       stderr: 'pipe',
     });
+    let replayStderr = '';
+    transport.stderr?.on('data', (chunk) => {
+      replayStderr += chunk.toString();
+    });
 
     const client = new Client(
       { name: 'integration-test-replay', version: '1.0.0' },
@@ -134,6 +138,23 @@ describe('Integration: record and replay flow', () => {
     expect(replayedTools.tools.length).toBe(recordedTools.tools.length);
     const replayToolNames = replayedTools.tools.map((t) => t.name).sort();
     expect(replayToolNames).toEqual(['echo', 'greet']);
+    expect(
+      replayedTools.tools
+        .map((tool) => ({
+          name: tool.name,
+          description: tool.description,
+          inputSchema: tool.inputSchema,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    ).toEqual(
+      recordedTools.tools
+        .map((tool) => ({
+          name: tool.name,
+          description: tool.description,
+          inputSchema: tool.inputSchema,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    );
 
     // Call echo tool from replay
     const replayedEchoResult = await client.callTool({
@@ -159,5 +180,6 @@ describe('Integration: record and replay flow', () => {
     }
 
     await client.close();
+    expect(replayStderr).not.toContain('input mismatch');
   }, 30_000);
 });

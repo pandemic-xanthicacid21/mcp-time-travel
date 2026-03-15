@@ -9,13 +9,14 @@ import { replayHttpCommand } from './commands/replay-http.js';
 import { listCommand } from './commands/list.js';
 import { debugCommand } from './commands/debug.js';
 import { inspectCommand } from './commands/inspect.js';
+import { CLI_VERSION } from './version.js';
 
 const program = new Command();
 
 program
   .name('mcp-time-travel')
   .description('Record, replay, and debug MCP tool call sessions')
-  .version('0.1.0');
+  .version(CLI_VERSION);
 
 program
   .command('record')
@@ -30,7 +31,6 @@ program
   .command('replay <session-id>')
   .description('Replay a recorded MCP session')
   .option('--dir <dir>', 'Sessions directory', '.mcp-replay')
-  .option('--speed <factor>', 'Replay speed: 0=instant, 1=real-time', '0')
   .option('--override <file>', 'JSON file with input/output overrides')
   .action(replayCommand);
 

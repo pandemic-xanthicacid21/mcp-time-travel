@@ -1,13 +1,12 @@
 import { createServer } from 'node:http';
 import fs from 'node:fs';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { SessionReader } from '../storage/session.js';
 import { ReplayHandler } from '../replay/replay-server.js';
 import { loadOverrides } from '../replay/overrides.js';
 import { randomUUID } from 'node:crypto';
+import { createReplayServer } from '../replay/server.js';
 
 interface ReplayHttpOptions {
   dir: string;
@@ -30,28 +29,6 @@ export async function replayHttpCommand(sessionId: string, options: ReplayHttpOp
   process.stderr.write(`[mcp-time-travel] Replaying HTTP session: ${sessionId}\n`);
   process.stderr.write(`[mcp-time-travel] Server: ${metadata.serverName}, ${metadata.toolCount} tool calls\n`);
   process.stderr.write(`[mcp-time-travel] Listening on port ${port}\n`);
-
-  function createReplayServer(): McpServer {
-    const mcpServer = new McpServer({
-      name: `mcp-time-travel:${metadata.serverName}`,
-      version: '0.1.0',
-    });
-
-    const tools = handler.getTools();
-    for (const tool of tools) {
-      const toolName = tool.name;
-      mcpServer.tool(
-        toolName,
-        tool.description ?? `[replayed] ${toolName}`,
-        async () => {
-          const result = handler.handleToolCall(toolName, {});
-          return result as CallToolResult;
-        },
-      );
-    }
-
-    return mcpServer;
-  }
 
   const transports = new Map<string, StreamableHTTPServerTransport>();
 
@@ -101,8 +78,8 @@ export async function replayHttpCommand(sessionId: string, options: ReplayHttpOp
         }
       };
 
-      const mcpServer = createReplayServer();
-      await mcpServer.connect(transport);
+      const replayServer = createReplayServer(metadata.serverName, handler);
+      await replayServer.connect(transport);
       await transport.handleRequest(req, res, parsed);
     } else if (req.method === 'GET') {
       if (sessionIdHeader && transports.has(sessionIdHeader)) {

@@ -1,6 +1,6 @@
 {
   "name": "mcp-time-travel",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/MBing/mcp-time-travel"
@@ -18,6 +18,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run build && npm test",
     "test": "vitest run",
     "test:watch": "vitest",
     "prepublishOnly": "npm run build"

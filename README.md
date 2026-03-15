@@ -129,7 +129,6 @@ npx mcp-time-travel replay <session-id> [options]
 
 Options:
   --dir <dir>        Sessions directory (default: .mcp-replay/)
-  --speed <factor>   0 = instant, 1 = real-time (default: 0)
   --override <file>  JSON file with input/output overrides
 ```
 
