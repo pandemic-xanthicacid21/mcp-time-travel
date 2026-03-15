@@ -76,6 +76,24 @@ Prints a non-interactive summary with tool call frequency, bar chart, and timeli
 npx mcp-time-travel list
 ```
 
+## Releasing
+
+Use a Changeset for pull requests that change shipped package behavior:
+
+```bash
+npm run changeset
+```
+
+Choose the appropriate semver bump:
+
+- `patch` for fixes and small behavior changes
+- `minor` for backward-compatible features
+- `major` for breaking changes
+
+Docs-only, workflow-only, and test-only pull requests do not need a Changeset.
+
+Release management is automated on `main`. Merging releasable work updates or opens a release PR. Merging that release PR bumps package versions, updates the changelog, creates the GitHub Release and tag, and publishes the package to npm. Manual version edits, tags, and GitHub Releases are no longer part of the normal flow.
+
 ## Configuration
 
 ### Recording with Claude Code
