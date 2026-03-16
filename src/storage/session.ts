@@ -62,6 +62,9 @@ export class SessionWriter {
     if (record.type === 'tool_call') {
       this.toolCallCount++;
       this.toolNames.add(record.tool);
+      this.metadata.toolCount = this.toolCallCount;
+      this.metadata.tools = Array.from(this.toolNames);
+      await writeFile(this.metadataPath, JSON.stringify(this.metadata, null, 2), 'utf-8');
     }
   }
 

@@ -137,7 +137,7 @@ Options:
   --server <name>    Server name in the config file (required)
   --config <path>    Path to MCP config JSON (default: ~/.claude/mcp.json)
   --session <id>     Custom session ID (default: auto-generated)
-  --output <dir>     Output directory (default: .mcp-replay/)
+  --output <dir>     Output directory (default: .mcp-time-travel/)
 ```
 
 ### `replay <session-id>`
@@ -146,7 +146,7 @@ Options:
 npx mcp-time-travel replay <session-id> [options]
 
 Options:
-  --dir <dir>        Sessions directory (default: .mcp-replay/)
+  --dir <dir>        Sessions directory (default: .mcp-time-travel/)
   --override <file>  JSON file with input/output overrides
 ```
 
@@ -156,7 +156,7 @@ Options:
 npx mcp-time-travel inspect <session-id> [options]
 
 Options:
-  --dir <dir>        Sessions directory (default: .mcp-replay/)
+  --dir <dir>        Sessions directory (default: .mcp-time-travel/)
 ```
 
 ### `debug <session-id>`
@@ -165,7 +165,7 @@ Options:
 npx mcp-time-travel debug <session-id> [options]
 
 Options:
-  --dir <dir>        Sessions directory (default: .mcp-replay/)
+  --dir <dir>        Sessions directory (default: .mcp-time-travel/)
   --step <n>         Start at step N (default: 1)
 
 Interactive commands:
@@ -185,15 +185,15 @@ Interactive commands:
 npx mcp-time-travel list [options]
 
 Options:
-  --dir <dir>        Sessions directory (default: .mcp-replay/)
+  --dir <dir>        Sessions directory (default: .mcp-time-travel/)
 ```
 
 ## Session Storage
 
-Sessions are stored in `.mcp-replay/sessions/<session-id>/`:
+Sessions are stored in `.mcp-time-travel/sessions/<session-id>/`:
 
 ```
-.mcp-replay/
+.mcp-time-travel/
   sessions/
     <session-id>/
       metadata.json      # Session info, timestamps, tool list
@@ -253,7 +253,7 @@ Agent (Claude Code, Cursor, etc.)
   v
 mcp-time-travel (proxy)
   |  ├── Intercepts tools/call messages
-  |  ├── Logs to .mcp-replay/sessions/<id>/recording.jsonl
+  |  ├── Logs to .mcp-time-travel/sessions/<id>/recording.jsonl
   |  └── Forwards everything to real server
   v
 Real MCP Server (child process, stdio)
