@@ -96,13 +96,21 @@ Release management is automated on `main`. Merging releasable work updates or op
 
 ## Configuration
 
+`record` and `replay` are **MCP servers** — they need an entry in your MCP config so your agent (Claude Code, Cursor, etc.) can connect to them.
+
+`list`, `inspect`, and `debug` are **CLI commands** — run them directly in your terminal. No config needed.
+
 ### Recording with Claude Code
 
-Point Claude Code at mcp-time-travel instead of the real server. In your `~/.claude/mcp.json`:
+Add both the real server and a recording proxy to your MCP config (project-scoped `.mcp.json` or global `~/.claude/mcp.json`):
 
 ```json
 {
   "mcpServers": {
+    "my-server": {
+      "command": "npx",
+      "args": ["my-mcp-server"]
+    },
     "my-server-recorded": {
       "command": "npx",
       "args": ["mcp-time-travel", "record", "--server", "my-server"]
@@ -111,9 +119,21 @@ Point Claude Code at mcp-time-travel instead of the real server. In your `~/.cla
 }
 ```
 
-The `--server` flag refers to another entry in the same config file — mcp-time-travel reads it to spawn the real server.
+The `--server` flag refers to another entry in the same config file — mcp-time-travel reads it to spawn the real server. Use the `my-server-recorded` server in Claude Code to record a session.
+
+### Inspecting and debugging (CLI)
+
+After recording, use the CLI directly in your terminal:
+
+```bash
+npx mcp-time-travel list                    # find your session ID
+npx mcp-time-travel inspect <session-id>    # summary, top tools, timeline
+npx mcp-time-travel debug <session-id>      # interactive step-through
+```
 
 ### Replaying with Claude Code
+
+Add a replay entry to your MCP config:
 
 ```json
 {
@@ -125,6 +145,8 @@ The `--server` flag refers to another entry in the same config file — mcp-time
   }
 }
 ```
+
+Restart Claude Code and use `my-server-replay`. It serves the recorded responses — no real server needed.
 
 ## CLI Reference
 
