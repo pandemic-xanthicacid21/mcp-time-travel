@@ -5,8 +5,7 @@
 *If you're experimenting with MCP agents and find this useful,
 a ⭐ helps others discover the project.*
 
-<!-- GIF placeholder -->
-> Demo GIF coming soon — record, replay, and debug MCP sessions
+![mcp-time-travel demo](demo/demo.gif)
 
 Agents are difficult to debug.
 
