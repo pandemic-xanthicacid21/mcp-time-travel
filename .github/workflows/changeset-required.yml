@@ -14,7 +14,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '18'
+          node-version: '22'
 
       - name: Ensure releasable changes include a changeset when a pull request needs a changeset
         run: node scripts/changeset-required.mjs
