@@ -9,7 +9,7 @@ End-to-end walkthrough of mcp-time-travel using [Playwright MCP](https://github.
 
 ## Step 1 -- Configure MCP servers
 
-Add the following entries to your `~/.claude/mcp.json`:
+Add the following entries to your `.mcp.json`:
 
 ```json
 {
@@ -86,7 +86,7 @@ You can inspect the full input/output JSON for each Playwright tool call.
 
 ## Step 6 -- Replay the session
 
-Add a replay entry to your `~/.claude/mcp.json`:
+Add a replay entry to your `.mcp.json`:
 
 ```json
 {
@@ -117,4 +117,4 @@ If the agent sends different inputs than what was recorded, you will see warning
 
 ## Cleanup
 
-When done testing, remove the entries from `~/.claude/mcp.json`.
+When done testing, remove the entries from `.mcp.json`.
