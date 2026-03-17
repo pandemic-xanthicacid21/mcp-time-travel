@@ -1,5 +1,11 @@
 # mcp-time-travel
 
+## 0.3.2
+
+### Patch Changes
+
+- 3293738: Fix demo README to reference project-level .mcp.json instead of global ~/.claude/mcp.json
+
 ## 0.3.1
 
 ### Patch Changes
