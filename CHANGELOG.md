@@ -1,5 +1,11 @@
 # mcp-time-travel
 
+## 0.3.3
+
+### Patch Changes
+
+- 1f72bbd: fix: correct default config path in README to show both .mcp.json and ~/.claude/mcp.json
+
 ## 0.3.2
 
 ### Patch Changes
