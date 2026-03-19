@@ -40,7 +40,7 @@ mcp-time-travel is a transparent proxy that sits between an AI agent (Claude Cod
 ### Record a session
 
 ```bash
-npx mcp-time-travel record --server my-server --config ~/.claude/mcp.json
+npx mcp-time-travel record --server my-server
 ```
 
 This proxies all traffic between the agent and the real MCP server, logging every tool call to disk.
@@ -156,7 +156,7 @@ npx mcp-time-travel record --server <name> [options]
 
 Options:
   --server <name>    Server name in the config file (required)
-  --config <path>    Path to MCP config JSON (default: ~/.claude/mcp.json)
+  --config <path>    Path to MCP config JSON (default: .mcp.json or ~/.claude/mcp.json)
   --session <id>     Custom session ID (default: auto-generated)
   --output <dir>     Output directory (default: .mcp-time-travel/)
 ```
